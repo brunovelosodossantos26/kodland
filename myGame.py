@@ -8,7 +8,7 @@ HEIGHT = 457
 gem_sound = sounds.gem
 bit_sound = sounds.bit
 mystery_music = sounds.mystery
-monster_sound = sounds.monster  # Added monster sound
+monster_sound = sounds.monster
 
 sounds_enabled = True
 
