@@ -1,6 +1,7 @@
 import pgzrun
 from pygame import Rect
 
+TITLE="Desafio Kodland"
 WIDTH = 800
 HEIGHT = 457
 
