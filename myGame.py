@@ -9,6 +9,9 @@ gem_sound = sounds.gem  # Som ao coletar ossos
 bit_sound = sounds.bit  # Som do menu
 mystery_music = sounds.mystery  # Música do jogo
 
+# Variável para controlar se os sons estão ativados
+sounds_enabled = True
+
 background = Actor("background")
 background.pos = (WIDTH // 2, HEIGHT // 2)
 
@@ -84,20 +87,39 @@ win = False
 button_width = 200
 button_height = 50
 button_x = (WIDTH - button_width) // 2
-start_y = (HEIGHT - button_height * 2 - 20) // 2
+start_y = (HEIGHT - button_height * 3 - 40) // 2  # Ajustado para 3 botões
 
 play_button = Rect(button_x, start_y, button_width, button_height)
-exit_button = Rect(button_x, start_y + button_height + 20, button_width, button_height)
+sound_button = Rect(button_x, start_y + button_height + 20, button_width, button_height)
+exit_button = Rect(button_x, start_y + button_height * 2 + 40, button_width, button_height)
 
 # Contadores
 frame_count = 0
 score = 0
+
+def toggle_sounds():
+    global sounds_enabled
+    sounds_enabled = not sounds_enabled
+    if sounds_enabled:
+        if game_state == "menu":
+            bit_sound.play(-1)
+        elif game_state == "game":
+            mystery_music.play(-1)
+    else:
+        bit_sound.stop()
+        mystery_music.stop()
+        gem_sound.stop()
 
 def draw():
     screen.blit("background", (0, 0))
     if game_state == "menu":
         screen.draw.filled_rect(play_button, (27, 48, 52))
         screen.draw.text("Play", center=play_button.center, color=(224, 240, 255), fontsize=40)
+        
+        screen.draw.filled_rect(sound_button, (27, 48, 52))
+        sound_text = "Sound: ON" if sounds_enabled else "Sound: OFF"
+        screen.draw.text(sound_text, center=sound_button.center, color=(224, 240, 255), fontsize=40)
+        
         screen.draw.filled_rect(exit_button, (27, 48, 52))
         screen.draw.text("Exit", center=exit_button.center, color=(224, 240, 255), fontsize=40)
     elif game_state == "game":
@@ -123,7 +145,7 @@ def draw():
             screen.blit("vida", (start_x - (i * vida_spacing), 10))
         
         if lives <= 0:
-            screen.draw.text("GAME OVER", center=(WIDTH//2, HEIGHT//3), fontsize=60, color="red")
+            screen.draw.text("GAME OVER", center=(WIDTH//2, HEIGHT//6), fontsize=60, color="red")
             screen.draw.filled_rect(play_button, (27, 48, 52))
             screen.draw.text("Menu", center=play_button.center, color=(224, 240, 255), fontsize=40)
         elif win:
@@ -147,14 +169,14 @@ def reset_game():
         caveira.last_hit_time = 0
 
 def play_menu_sound():
-    # Para a música do jogo se estiver tocando e inicia o som do menu em loop
-    mystery_music.stop()
-    bit_sound.play(-1)  # -1 para tocar em loop
+    if sounds_enabled:
+        mystery_music.stop()
+        bit_sound.play(-1)
 
 def play_game_music():
-    # Para o som do menu e inicia a música do jogo em loop
-    bit_sound.stop()
-    mystery_music.play(-1)  # -1 para tocar em loop
+    if sounds_enabled:
+        bit_sound.stop()
+        mystery_music.play(-1)
 
 def update():
     global frame_count, score, bones, lives, invincible, invincible_time, game_state, respawn_time, win
@@ -264,7 +286,8 @@ def update():
             if player.colliderect(bone):
                 score += 1
                 bones_to_remove.append(bone)
-                gem_sound.play()
+                if sounds_enabled:
+                    gem_sound.play()
         
         for bone in bones_to_remove:
             if bone in bones:
@@ -308,13 +331,15 @@ def on_mouse_down(pos):
         if play_button.collidepoint(pos):
             game_state = "game"
             reset_game()
-            play_game_music()  # Inicia a música do jogo
+            play_game_music()
+        elif sound_button.collidepoint(pos):
+            toggle_sounds()
         elif exit_button.collidepoint(pos):
             exit()
     elif game_state == "game" and (lives <= 0 or win):
         if play_button.collidepoint(pos):
             game_state = "menu"
-            play_menu_sound()  # Volta para o som do menu
+            play_menu_sound()
 
 # Inicia o som do menu em loop quando o jogo começa
 play_menu_sound()
